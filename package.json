@@ -21,7 +21,7 @@
 
     "three": "0.160.0",
     "@react-three/fiber": "8.15.14",
-    "@react-three/drei": "9.101.3"
+    "@react-three/drei": "9.56.29"
   },
   "devDependencies": {
     "typescript": "5.3.3",
