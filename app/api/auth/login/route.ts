@@ -1,9 +1,7 @@
-// Σωστή διαχείριση για να κάνουμε σωστό validation και να επιστρέψουμε έγκυρα δεδομένα.
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
-
 
 export async function POST(request: Request) {
   try {
@@ -31,6 +29,4 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: "Login successful", token }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ message: "Server error", error: error.message }, { status: 500 });
-  }
-}
+    return NextResponse.
