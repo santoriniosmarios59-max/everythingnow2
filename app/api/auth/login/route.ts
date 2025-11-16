@@ -1,33 +1,35 @@
-// app/api/auth/login/route.ts
+// Σωστή διαχείριση για να κάνουμε σωστό validation και να επιστρέψουμε έγκυρα δεδομένα.
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";  // Corrected to named import
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { prisma } from "@/lib/prisma";  // Εδώ διορθώθηκε το import.
 
-export async function POST(req: Request) {
-  const { email, password } = await req.json();
+export async function POST(request: Request) {
+  try {
+    const { email, password } = await request.json();  // Λήψη των δεδομένων από το σώμα του request.
 
-  // Find the user in the database
-  const user = await prisma.user.findUnique({
-    where: { email: email },
-  });
+    const user = await prisma.user.findUnique({
+      where: { email }, // Ελέγχουμε αν υπάρχει ο χρήστης με αυτό το email.
+    });
 
-  if (!user) {
-    return NextResponse.json({ message: "User not found" }, { status: 404 });
+    if (!user) {
+      return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });  // Αποτυχία αν δεν υπάρχει ο χρήστης.
+    }
+
+    // Συγκρίνουμε τον κωδικό πρόσβασης
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });  // Αποτυχία αν ο κωδικός είναι λάθος.
+    }
+
+    // Δημιουργούμε το JWT token αν όλα είναι σωστά.
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, {
+      expiresIn: "1h",  // 1 ώρα ισχύος
+    });
+
+    return NextResponse.json({ message: "Login successful", token }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ message: "Server error", error: error.message }, { status: 500 });
   }
-
-  // Check if the password matches
-  const passwordMatch = await bcrypt.compare(password, user.password);
-  if (!passwordMatch) {
-    return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
-  }
-
-  // Create a JWT token
-  const token = jwt.sign(
-    { userId: user.id, email: user.email },
-    process.env.JWT_SECRET!,
-    { expiresIn: "1h" }
-  );
-
-  return NextResponse.json({ message: "Login successful", token });
 }
