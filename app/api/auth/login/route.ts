@@ -1,12 +1,13 @@
+// app/api/auth/login/route.ts
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // Σιγουρευόμαστε ότι κάνουμε σωστή εισαγωγή του prisma
+import { prisma } from "@/lib/prisma";  // Corrected to named import
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 export async function POST(req: Request) {
   const { email, password } = await req.json();
 
-  // Βρίσκουμε τον χρήστη στην βάση δεδομένων
+  // Find the user in the database
   const user = await prisma.user.findUnique({
     where: { email: email },
   });
@@ -15,13 +16,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "User not found" }, { status: 404 });
   }
 
-  // Ελέγχουμε αν ο κωδικός είναι σωστός
+  // Check if the password matches
   const passwordMatch = await bcrypt.compare(password, user.password);
   if (!passwordMatch) {
     return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
   }
 
-  // Δημιουργούμε το JWT Token
+  // Create a JWT token
   const token = jwt.sign(
     { userId: user.id, email: user.email },
     process.env.JWT_SECRET!,
