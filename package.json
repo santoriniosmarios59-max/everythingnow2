@@ -13,15 +13,9 @@
     "next": "14.2.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-
     "bcryptjs": "2.4.3",
-
     "@prisma/client": "^5.16.1",
-    "prisma": "^5.16.1",
-
-    "three": "0.160.0",
-    "@react-three/fiber": "8.15.14",
-    "@react-three/drei": "9.56.29"
+    "prisma": "^5.16.1"
   },
   "devDependencies": {
     "typescript": "5.3.3",
