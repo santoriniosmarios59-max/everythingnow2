@@ -29,4 +29,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: "Login successful", token }, { status: 200 });
   } catch (error) {
-    return NextResponse.
+    return NextResponse.json({ message: "Server error", error: error.message }, { status: 500 });
+  }
+}
