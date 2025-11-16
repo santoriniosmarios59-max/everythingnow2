@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import prisma from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
@@ -9,12 +8,12 @@ export async function POST(req: Request) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: "Missing email or password" },
+        { error: "Email and password are required" },
         { status: 400 }
       );
     }
 
-    // Check user exists
+    // Find user in DB
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -26,29 +25,33 @@ export async function POST(req: Request) {
       );
     }
 
-    // Compare passwords
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) {
+    // Validate password
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
       return NextResponse.json(
         { error: "Invalid password" },
         { status: 401 }
       );
     }
 
-    // Create token
-    const token = jwt.sign(
+    // SUCCESS
+    return NextResponse.json(
       {
-        id: user.id,
-        email: user.email,
+        message: "Login successful",
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        },
       },
-      process.env.JWT_SECRET || "SUPER_SECRET_KEY",
-      { expiresIn: "7d" }
+      { status: 200 }
     );
 
-    return NextResponse.json({ success: true, token });
   } catch (error) {
+    console.error("Login error:", error);
     return NextResponse.json(
-      { error: "Server error" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
