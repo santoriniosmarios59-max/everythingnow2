@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 
 export async function POST(req: Request) {
@@ -13,7 +13,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Find user in DB
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -25,7 +24,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Validate password
     const passwordMatch = await bcrypt.compare(password, user.password);
 
     if (!passwordMatch) {
@@ -35,7 +33,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // SUCCESS
     return NextResponse.json(
       {
         message: "Login successful",
