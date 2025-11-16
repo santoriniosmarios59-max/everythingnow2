@@ -1,91 +1,99 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 
 export default function RegisterPage() {
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
-  async function handleRegister(e: any) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setBusy(true);
+    setMessage(null);
 
-    const email = e.target.email.value;
-    const name = e.target.name.value;
-    const password = e.target.password.value;
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, name }),
+      });
 
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      body: JSON.stringify({ email, name, password }),
-    });
-
-    const data = await res.json();
-
-    if (!data.success) {
-      setError(data.error);
-      setSuccess("");
-    } else {
-      setError("");
-      setSuccess("Account created! You can login now.");
+      const data = await res.json();
+      if (!res.ok) {
+        setMessage(data?.error || "Registration failed");
+      } else {
+        setMessage("Registration successful — you can now log in.");
+        setEmail("");
+        setName("");
+        setPassword("");
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage("Network error");
+    } finally {
+      setBusy(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center">
-      <div className="p-10 rounded-2xl bg-gradient-to-br from-purple-900 via-black to-black shadow-2xl border border-purple-600/30 w-full max-w-md">
-        
-        <h1 className="text-4xl mb-6 text-center font-bold text-purple-300">
-          Create Account
-        </h1>
+    <main className="min-h-screen flex items-center justify-center p-6">
+      <div className="w-full max-w-md bg-white rounded-xl shadow p-6">
+        <h1 className="text-2xl font-bold mb-4">Create your account</h1>
 
-        <form onSubmit={handleRegister} className="space-y-4">
-          <input
-            type="text"
-            name="name"
-            placeholder="Full Name"
-            className="w-full p-3 rounded-xl bg-black border border-purple-700 text-purple-200"
-            required
-          />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium">Full name (optional)</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-1 w-full border px-3 py-2 rounded"
+              placeholder="Your name"
+            />
+          </div>
 
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            className="w-full p-3 rounded-xl bg-black border border-purple-700 text-purple-200"
-            required
-          />
+          <div>
+            <label className="block text-sm font-medium">Email</label>
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              required
+              className="mt-1 w-full border px-3 py-2 rounded"
+              placeholder="you@example.com"
+            />
+          </div>
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            className="w-full p-3 rounded-xl bg-black border border-purple-700 text-purple-200"
-            required
-          />
+          <div>
+            <label className="block text-sm font-medium">Password</label>
+            <input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              type="password"
+              required
+              minLength={6}
+              className="mt-1 w-full border px-3 py-2 rounded"
+              placeholder="Choose a secure password"
+            />
+          </div>
 
-          <button
-            type="submit"
-            className="w-full p-3 bg-purple-600 hover:bg-purple-700 rounded-xl font-bold text-white transition"
-          >
-            Create Account
-          </button>
+          <div>
+            <button
+              disabled={busy}
+              type="submit"
+              className="w-full py-2 px-4 bg-purple-600 text-white rounded hover:bg-purple-700"
+            >
+              {busy ? "Creating..." : "Create account"}
+            </button>
+          </div>
 
-          {error && (
-            <p className="text-red-500 text-center font-semibold">{error}</p>
-          )}
-
-          {success && (
-            <p className="text-green-400 text-center font-semibold">{success}</p>
+          {message && (
+            <div className="text-center text-sm text-gray-700 mt-2">{message}</div>
           )}
         </form>
-
-        <p className="text-center text-purple-300 mt-4">
-          Already have an account?{" "}
-          <Link href="/login" className="font-bold text-purple-400 hover:text-purple-200">
-            Login
-          </Link>
-        </p>
       </div>
-    </div>
+    </main>
   );
 }
