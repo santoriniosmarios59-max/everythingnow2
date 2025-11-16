@@ -11,6 +11,6 @@ model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
-  name      String?  // Αν το "name" είναι προαιρετικό
+  name      String?  // Εάν το "name" είναι προαιρετικό
   createdAt DateTime @default(now())
 }
